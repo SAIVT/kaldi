@@ -108,6 +108,9 @@ check_portaudio:
 clean: rmlibdir
 	-for x in $(SUBDIRS) $(EXT_SUBDIRS); do $(MAKE) -C $$x clean; done
 
+distclean: clean
+	-for x in $(SUBDIRS) $(EXT_SUBDIRS); do $(MAKE) -C $$x distclean; done
+
 test: $(addsuffix /test, $(SUBDIRS))
 
 ext_test: $(addsuffix /test, $(EXT_SUBDIRS))
@@ -124,6 +127,8 @@ cudavalgrind:
 valgrind:
 	-for x in $(MEMTESTDIRS); do $(MAKE) -C $$x valgrind || { echo "valgrind on $$x failed"; exit 1; }; done
 
+base/.depend.mk:
+	$(MAKE) depend
 
 depend: $(addsuffix /depend, $(SUBDIRS))
 
@@ -143,6 +148,14 @@ $(SUBDIRS) : mklibdir
 $(EXT_SUBDIRS) : mklibdir
 	$(MAKE) -C $@
 
+install: all
+	mkdir -p $(INSTALLPREFIX)/{bin,lib}
+	# copying binaries to $(INSTALLPREFIX)/bin
+	find $(SUBDIRS_BIN) -type f -executable -exec cp -v {} $(INSTALLPREFIX)/bin/ ';'
+	cp -av ../tools/sph2pipe_v2.5/sph2pipe $(INSTALLPREFIX)/bin/
+	# copying libs to $(INSTALLPREFIX)/lib
+	find $(SUBDIRS_LIB) -type f -name '*.so' -exec cp -v {} $(INSTALLPREFIX)/lib/ ';'
+	cp -av ../tools/openfst/lib/* $(INSTALLPREFIX)/lib/
 
 ### Dependency list ###
 # this is necessary for correct parallel compilation
@@ -153,7 +166,7 @@ bin fstbin gmmbin fgmmbin sgmmbin sgmm2bin featbin nnetbin nnet2bin nnet3bin cha
  lm decoder lat cudamatrix nnet nnet2 nnet3 ivector chain kws online2
 
 #2)The libraries have inter-dependencies
-base:
+base: base/.depend.mk
 matrix: base
 thread: base
 util: base matrix thread
