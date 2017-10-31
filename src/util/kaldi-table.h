@@ -268,8 +268,8 @@ class RandomAccessTableReader {
 
   // Allow copy-constructor only for non-opened readers (needed for inclusion in
   // stl vector)
-  RandomAccessTableReader(const RandomAccessTableReader<Holder>
-                          &other):
+  explicit RandomAccessTableReader(const RandomAccessTableReader<Holder>
+                                   &other):
       impl_(NULL) { KALDI_ASSERT(other.impl_ == NULL); }
  private:
   // Disallow assignment.
@@ -349,7 +349,7 @@ class SequentialTableReader {
 
   // Allow copy-constructor only for non-opened readers (needed for inclusion in
   // stl vector)
-  SequentialTableReader(const SequentialTableReader<Holder> &other):
+  explicit SequentialTableReader(const SequentialTableReader<Holder> &other):
       impl_(NULL) { KALDI_ASSERT(other.impl_ == NULL); }
  private:
   // Disallow assignment.
@@ -407,7 +407,6 @@ class TableWriter {
   }
  private:
   TableWriter &operator = (const TableWriter&);  // Disallow assignment.
-
   void CheckImpl() const;  // Checks that impl_ is non-NULL; prints an error
                            // message and dies (with KALDI_ERR) if NULL.
   TableWriterImplBase<Holder> *impl_;

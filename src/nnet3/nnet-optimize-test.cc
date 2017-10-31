@@ -232,7 +232,6 @@ int main() {
   //SetVerboseLevel(2);
 
 #if HAVE_CUDA == 1
-  CuDevice::Instantiate().SetDebugStrideMode(true);
   CuDevice::Instantiate().SelectGpuId("no");
   UnitTestNnetOptimize();
   CuDevice::Instantiate().SelectGpuId("yes");

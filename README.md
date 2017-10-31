@@ -27,14 +27,15 @@ For HOT news about Kaldi see [the project site](http://kaldi-asr.org/).
 - Doxygen reference of the C++ code.
 
 [Kaldi forums and mailing lists](http://kaldi-asr.org/forums.html):
-
-We have two different lists
-- User list kaldi-help
+- User list kaldi-help:
+    [Web interface/archive](https://groups.google.com/forum/#!forum/kaldi-help) ||
+    [Subscribe] (mailto:kaldi-help+subscribe@googlegroups.com) ||
+    [Post] (mailto:kaldi-help@googlegroups.com)
 - Developer list kaldi-developers:
-
-To sign up to any of those mailing lists, go to
-[http://kaldi-asr.org/forums.html](http://kaldi-asr.org/forums.html):
-
+    [Web interface/archive](https://groups.google.com/forum/#!forum/kaldi-developers) ||
+    [Subscribe] (mailto:kaldi-developers+subscribe@googlegroups.com) ||
+    [Post] (mailto:kaldi-developers@googlegroups.com)
+- Also try luck and search in [SourceForge archives](https://sourceforge.net/p/kaldi/discussion/).
 
 Development pattern for contributors
 ------------------------------------
@@ -46,19 +47,8 @@ Development pattern for contributors
 3. [Generate a pull request](https://help.github.com/articles/creating-a-pull-request/)
    through the Web interface of GitHub.
 4. As a general rule, please follow [Google C++ Style Guide]
-   (https://google.github.io/styleguide/cppguide.html).
+   (https://google-styleguide.googlecode.com/svn/trunk/cppguide.html).
    There are a [few exceptions in Kaldi](http://kaldi-asr.org/doc/style.html).
    You can use the [Google's cpplint.py]
-   (https://raw.githubusercontent.com/google/styleguide/gh-pages/cpplint/cpplint.py)
+   (https://google-styleguide.googlecode.com/svn/trunk/cpplint/cpplint.py)
    to verify that your code is free of basic mistakes.
-
-Platform specific notes
------------------------
-
-PowerPC 64bits little-endian (ppc64le):
-- Kaldi is expected to work out of the box in RHEL >= 7 and Ubuntu >= 16.04 with
-  OpenBLAS, ATLAS, or CUDA.
-- CUDA drivers for ppc64le can be found at [https://developer.nvidia.com/cuda-downloads]
-  (https://developer.nvidia.com/cuda-downloads).
-- An [IBM Redbook] (https://www.redbooks.ibm.com/abstracts/redp5169.html) is
-  available as a guide to install and configure CUDA.

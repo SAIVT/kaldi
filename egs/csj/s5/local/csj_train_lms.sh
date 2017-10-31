@@ -1,8 +1,5 @@
 #!/bin/bash 
 
-# 2016 Modified by Takafumi Moriya at Tokyo Institute of Technology
-# for Japanese speech recognition using CSJ.
-
 # Copyright 2013  Arnab Ghoshal
 #                 Johns Hopkins University (author: Daniel Povey)
 

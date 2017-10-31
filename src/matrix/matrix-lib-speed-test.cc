@@ -27,14 +27,11 @@
 
 namespace kaldi {
 
-template<typename Real> std::string NameOf() {
+template<typename Real>
+std::string NameOf() {
   return (sizeof(Real) == 8 ? "<double>" : "<float>");
 }
 
-template<typename Real> static void CsvResult(std::string test, int dim, BaseFloat measure, std::string units) {
-    std::cout << test << "," << (sizeof(Real) == 8 ? "double" : "float") << "," << dim << "," << measure << "," << units << "\n";
-}
-    
 template<typename Real> static void UnitTestRealFftSpeed() {
   // First, test RealFftInefficient.
   Timer t;
@@ -44,7 +41,7 @@ template<typename Real> static void UnitTestRealFftSpeed() {
     Vector<Real> v(sz);
     RealFft(&v, true);
   }
-  CsvResult<Real>(__func__, 512, t.Elapsed(), "seconds");
+  KALDI_LOG << __func__ << " finished in " << t.Elapsed() << " seconds.";
 }
 
 template<typename Real> static void UnitTestSplitRadixRealFftSpeed() {
@@ -57,7 +54,7 @@ template<typename Real> static void UnitTestSplitRadixRealFftSpeed() {
     Vector<Real> v(sz);
     srfft.Compute(v.Data(), true);
   }
-  CsvResult<Real>(__func__, 512, t.Elapsed(), "seconds");
+  KALDI_LOG << __func__ << " finished in " << t.Elapsed() << " seconds.";
 }
 
 template<typename Real>
@@ -77,7 +74,8 @@ static void UnitTestSvdSpeed() {
       SpMatrix<Real> S(size);
       Vector<Real> l(size);
       S.Eig(&l);
-      CsvResult<Real>("Eig w/o eigenvectors", size, t1.Elapsed(), "seconds");
+      KALDI_LOG << "For size " << size << ", Eig without eigenvectors took " << t1.Elapsed()
+                << " seconds.";
     }
     {
       Timer t1;
@@ -86,7 +84,8 @@ static void UnitTestSvdSpeed() {
       Vector<Real> l(size);
       Matrix<Real> P(size, size);
       S.Eig(&l, &P);
-      CsvResult<Real>("Eig with eigenvectors", size, t1.Elapsed(), "seconds");
+      KALDI_LOG << "For size " << size << ", Eig with eigenvectors took " << t1.Elapsed()
+                << " seconds.";
     }
     {
       Timer t1;
@@ -94,7 +93,8 @@ static void UnitTestSvdSpeed() {
       M.SetRandn();
       Vector<Real> l(size);
       M.Svd(&l, NULL, NULL);
-      CsvResult<Real>("SVD w/o eigenvectors", size, t1.Elapsed(), "seconds");
+      KALDI_LOG << "For size " << size << ", SVD without eigenvectors took " << t1.Elapsed()
+                << " seconds.";
     }
     {
       Timer t1;
@@ -102,10 +102,11 @@ static void UnitTestSvdSpeed() {
       M.SetRandn();
       Vector<Real> l(size);
       M.Svd(&l, &U, &V);
-      CsvResult<Real>("SVD with eigenvectors", size, t1.Elapsed(), "seconds");
+      KALDI_LOG << "For size " << size << ", SVD with eigenvectors took " << t1.Elapsed()
+                << " seconds.";
     }
   }
-  CsvResult<Real>(__func__, sizes.size(), t.Elapsed(), "seconds");
+  KALDI_LOG << __func__ << " finished in " << t.Elapsed() << " seconds.";
 }
 
 template<typename Real>
@@ -126,10 +127,11 @@ static void UnitTestAddMatMatSpeed() {
         C.AddMatMat(1.0, A, kTrans, B, kNoTrans, 0.0); 
         C.AddMatMat(1.0, A, kTrans, B, kTrans, 0.0); 
       }
-      CsvResult<Real>("AddMatMat", size, t1.Elapsed(), "seconds");
+      KALDI_LOG << "For size " << size << ", AddMatMat (2x) took " << t1.Elapsed()
+                << " seconds.";
     }
   }
-  CsvResult<Real>(__func__, sizes.size(), t.Elapsed(), "seconds");
+  KALDI_LOG << __func__ << " finished in " << t.Elapsed() << " seconds.";
 }
 
 template<typename Real>
@@ -157,9 +159,12 @@ static void UnitTestAddRowSumMatSpeed() {
 
     BaseFloat fdim = size;
     BaseFloat gflops = (fdim * fdim * iter) / (t1.Elapsed() * 1.0e+09);
-    CsvResult<Real>("AddRowSumMat", size, gflops, "gigaflops");
+    KALDI_LOG << "For AddRowSumMat" << NameOf<Real>()
+              << " , dim = " << size
+              << " , speed: " << gflops << " gigaflops.";
   }
-  CsvResult<Real>(__func__, sizes.size(), t.Elapsed(), "seconds");
+
+  KALDI_LOG << __func__ << " finished in " << t.Elapsed() << " seconds.";   
 }
 
 template<typename Real>
@@ -187,9 +192,12 @@ static void UnitTestAddColSumMatSpeed() {
  
     BaseFloat fdim = size;
     BaseFloat gflops = (fdim * fdim * iter) / (t1.Elapsed() * 1.0e+09);
-    CsvResult<Real>("AddColSumMat", size, gflops, "gigaflops");
+    KALDI_LOG << "For AddColSumMat" << NameOf<Real>()
+              << " , dim = " << size
+              << " , speed: " << gflops << " gigaflops.";
   }
-  CsvResult<Real>(__func__, sizes.size(), t.Elapsed(), "seconds");
+
+  KALDI_LOG << __func__ << " finished in " << t.Elapsed() << " seconds.";   
 }
 
 template<typename Real>
@@ -218,9 +226,12 @@ static void UnitTestAddVecToRowsSpeed() {
 
     BaseFloat fdim = size;
     BaseFloat gflops = (fdim * fdim * iter) / (t1.Elapsed() * 1.0e+09);
-    CsvResult<Real>("AddVecToRows", size, gflops, "gigaflops");
+    KALDI_LOG << "For AddVecToRows" << NameOf<Real>()
+              << " , dim = " << size
+              << " , speed " << gflops << " gigaflops.";
   }
-  CsvResult<Real>(__func__, sizes.size(), t.Elapsed(), "seconds");
+
+  KALDI_LOG << __func__ << " finished in " << t.Elapsed() << " seconds.";   
 }
 
 template<typename Real>
@@ -249,9 +260,12 @@ static void UnitTestAddVecToColsSpeed() {
 
     BaseFloat fdim = size;
     BaseFloat gflops = (fdim * fdim * iter) / (t1.Elapsed() * 1.0e+09);
-    CsvResult<Real>("AddVecToCols", size, gflops, "gigaflops");
+    KALDI_LOG << "For AddVecToCols" << NameOf<Real>() 
+              << ", dim = " << size
+              << ", speed: " << gflops << " gigaflops.";
   }
-  CsvResult<Real>(__func__, sizes.size(), t.Elapsed(), "seconds");
+
+  KALDI_LOG << __func__ << " finished in " << t.Elapsed() << " seconds.";   
 }
 
 template<typename Real> static void MatrixUnitSpeedTest() {

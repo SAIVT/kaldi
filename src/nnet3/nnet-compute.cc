@@ -99,8 +99,7 @@ void NnetComputer::DebugBeforeExecute(int32 command,
 
 
 void NnetComputer::DebugAfterExecute(int32 command,
-                                     const CommandDebugInfo &info,
-                                     double command_exec_time) {
+                                     const CommandDebugInfo &info) {
   std::ostringstream os;
   os << command_strings_[command] << "\t|\t";
   {
@@ -140,7 +139,6 @@ void NnetComputer::DebugAfterExecute(int32 command,
          << "->" << ParameterStddev(*component) << " ";
     }
   }
-  os << "\t|\t time: " << command_exec_time << " secs";
   KALDI_LOG << os.str();
 }
 
@@ -357,20 +355,14 @@ void NnetComputer::Forward() {
   int32 size = computation_.commands.size(), i = 0;
   const std::vector<NnetComputation::Command> &c = computation_.commands;
   CommandDebugInfo info;
-  Timer timer;
-  double total_elapsed_previous = 0.0;
 
   for (; i < size && c[i].command_type != kNoOperationMarker;
        i++) {
     if (debug_)
       DebugBeforeExecute(i, &info);
     ExecuteCommand(i);
-    if (debug_) {
-      double total_elapsed_now = timer.Elapsed();
-      DebugAfterExecute(i, info, total_elapsed_now - total_elapsed_previous);
-      total_elapsed_previous = total_elapsed_now;
-    }
-
+    if (debug_)
+      DebugAfterExecute(i, info);
   }
 
 }
@@ -383,18 +375,12 @@ void NnetComputer::Backward() {
   for (; i < size && c[i].command_type != kNoOperationMarker;
        i++);
   CommandDebugInfo info;
-  Timer timer;
-  double total_elapsed_previous = 0.0;
-
   for (; i < size; i++) {
     if (debug_)
       DebugBeforeExecute(i, &info);
     ExecuteCommand(i);
-    if (debug_) {
-      double total_elapsed_now = timer.Elapsed();
-      DebugAfterExecute(i, info, total_elapsed_now - total_elapsed_previous);
-      total_elapsed_previous = total_elapsed_now;
-    }
+    if (debug_)
+      DebugAfterExecute(i, info);
   }
 }
 

@@ -1,16 +1,13 @@
 #!/bin/bash
 VER=1.10
-if [ ! -f liblbfgs-$VER.tar.gz ]; then
+if [ ! -f $liblbfgs-$VER.tar.gz ]; then
   wget https://github.com/downloads/chokkan/liblbfgs/liblbfgs-$VER.tar.gz
 fi
 
 tar -xzf liblbfgs-$VER.tar.gz
 cd liblbfgs-$VER
-./configure --prefix=`pwd`
+./configure
 make
-# due to the liblbfgs project directory structure, we have to use -i
-# but the erros are completely harmless
-make -i install
 cd ..
 
 (

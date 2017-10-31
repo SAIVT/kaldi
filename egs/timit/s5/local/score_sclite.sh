@@ -9,7 +9,6 @@ stage=0
 min_lmwt=1
 max_lmwt=10
 mbr_scale=1.0
-iter=final
 #end configuration section.
 
 [ -f ./path.sh ] && . ./path.sh
@@ -29,9 +28,9 @@ data=$1
 lang_or_graph=$2
 dir=$3
 
-model=$dir/../${iter}.mdl # assume model one level up from decoding dir.
+model=$dir/../final.mdl # assume model one level up from decoding dir.
 
-hubscr=$KALDI_ROOT/tools/sctk/bin/hubscr.pl
+hubscr=$KALDI_ROOT/tools/sctk/bin/hubscr.pl 
 [ ! -f $hubscr ] && echo "Cannot find scoring program at $hubscr" && exit 1;
 hubdir=`dirname $hubscr`
 

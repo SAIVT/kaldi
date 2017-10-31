@@ -54,11 +54,9 @@ for f in $data/text.orig $data/orig2utt $lang/L_disambig.fst \
   fi
 done
 
-utils/lang/check_phones_compatible.sh $lang/phones.txt $model_dir/phones.txt
-
 # If --ngram-order is larger than 1, we will have to use SRILM
 if [ $ngram_order -gt 1 ]; then
-  ngram_count=`which ngram-count` || true
+  ngram_count=`which ngram-count`;
   if [ -z $ngram_count ]; then
     if uname -a | grep 64 >/dev/null; then # some kind of 64 bit...
       sdir=`pwd`/../../../tools/srilm/bin/i686-m64

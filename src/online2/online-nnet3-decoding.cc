@@ -72,9 +72,8 @@ void SingleUtteranceNnet3Decoder::GetBestPath(bool end_of_utterance,
 
 bool SingleUtteranceNnet3Decoder::EndpointDetected(
     const OnlineEndpointConfig &config) {
-  int32 subsample = decodable_.FrameSubsamplingFactor();
   return kaldi::EndpointDetected(config, tmodel_,
-                                 feature_pipeline_->FrameShiftInSeconds() * subsample,
+                                 feature_pipeline_->FrameShiftInSeconds(),
                                  decoder_);  
 }
 
