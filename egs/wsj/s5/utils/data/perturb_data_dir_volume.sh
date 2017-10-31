@@ -32,12 +32,21 @@ fi
 
 cat $data/wav.scp | python -c "
 import sys, os, subprocess, re, random
+random.seed(0)
 scale_low = 1.0/8
 scale_high = 2.0
 for line in sys.stdin.readlines():
   if len(line.strip()) == 0:
     continue
-  print '{0} sox --vol {1} -t wav - -t wav - |'.format(line.strip(), random.uniform(scale_low, scale_high))
+  # Handle three cases of rxfilenames appropriately; 'input piped command', 'file offset' and 'filename'
+  if line.strip()[-1] == '|':
+    print '{0} sox --vol {1} -t wav - -t wav - |'.format(line.strip(), random.uniform(scale_low, scale_high))
+  elif re.search(':[0-9]+$', line.strip()) is not None:
+    parts = line.split()
+    print '{id} wav-copy {wav} - | sox --vol {vol} -t wav - -t wav - |'.format(id = parts[0], wav=' '.join(parts[1:]), vol = random.uniform(scale_low, scale_high))
+  else:
+    parts = line.split()
+    print '{id} sox --vol {vol} -t wav {wav} -t wav - |'.format(id = parts[0], wav=' '.join(parts[1:]), vol = random.uniform(scale_low, scale_high))
 "  > $data/wav.scp_scaled || exit 1;
 
 len1=$(cat $data/wav.scp | wc -l)
