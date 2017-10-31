@@ -1,23 +1,23 @@
 #!/usr/bin/env python
 #
-# Copyright  2014  Nickolay V. Shmyrev
-#            2016  Johns Hopkins University (author: Daniel Povey)
+# Copyright  2014 Nickolay V. Shmyrev 
 # Apache 2.0
 
 
 import sys
 from codecs import open
 
-# This script joins together pairs of split-up words like "you 're" -> "you're".
-# The TEDLIUM transcripts are normalized in a way that's not traditional for
-# speech recognition.
+words = set()
+for line in open(sys.argv[1], encoding='utf8'):
+    items = line.split()
+    words.add(items[0])
 
 for line in sys.stdin:
     items = line.split()
     new_items = []
     i = 1
     while i < len(items):
-        if i < len(items) - 1 and items[i+1][0] == '\'':
+        if i < len(items) - 1 and items[i+1][0] == '\'' and items[i] + items[i+1] in words:
             new_items.append(items[i] + items[i+1])
             i = i + 1
         else:

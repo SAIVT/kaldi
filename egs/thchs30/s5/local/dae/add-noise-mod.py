@@ -119,7 +119,6 @@ def main():
         
     for tag, wav in scp(args.wav_src):
         logging.debug('wav: %s', wav)
-        fname = wav.split("/")[-1].split(".")[0]
         noise_level = random.gauss(args.noise_level, args.sigma0)
         logging.debug('noise level: %f', noise_level)
         mat = wave_mat(wav)
@@ -131,9 +130,9 @@ def main():
         logging.debug('selected type: %d', type)
         if type == 0:
             if args.wavdir != 'NULL':
-               output_wave_file(args.wavdir, fname, mat)
+               output_wave_file(args.wavdir, tag, mat)
             else:
-               output(fname, mat)
+               output(tag, mat)
         else:
             p,n = noises[type]
             if p+len(mat) > len(n):
@@ -145,9 +144,9 @@ def main():
             pos, result = mix(mat, n, p, scale)
             noises[type] = (pos, n)
             if args.wavdir != 'NULL':
-                output_wave_file(args.wavdir, fname, result)
+                output_wave_file(args.wavdir, tag, result)
             else:
-                output(fname, result)
+                output(tag, result)
 
 if __name__ == '__main__':
     main()

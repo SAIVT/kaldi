@@ -23,16 +23,7 @@
 
 namespace kaldi {
 namespace nnet3 {
-// Reset seeds for test time for RandomComponent
-static void ResetSeed(int32 rand_seed, const Component &c) {
-  RandomComponent *rand_component = 
-    const_cast<RandomComponent*>(dynamic_cast<const RandomComponent*>(&c));
-  
-  if (rand_component != NULL) {
-    srand(rand_seed);
-    rand_component->ResetGenerator();
-  }
-}
+
 // returns true if two are string are equal except for what looks like it might
 // be a difference last digit of a floating point number, e.g. accept
 // 1.234 to be the same as 1.235.  Not very rigorous.
@@ -197,8 +188,6 @@ void TestNnetComponentUpdatable(Component *c) {
 void TestSimpleComponentPropagateProperties(const Component &c) {
   int32 properties = c.Properties();
   Component *c_copy = NULL, *c_copy_scaled = NULL;
-  int32 rand_seed = Rand();
- 
   if (RandInt(0, 1) == 0)
     c_copy = c.Copy();  // This will test backprop with an updatable component.
   if (RandInt(0, 1) == 0 &&
@@ -234,14 +223,10 @@ void TestSimpleComponentPropagateProperties(const Component &c) {
   if ((properties & kPropagateAdds) && (properties & kPropagateInPlace)) {
     KALDI_ERR << "kPropagateAdds and kPropagateInPlace flags are incompatible.";
   }
-  
-  ResetSeed(rand_seed, c);
-  c.Propagate(NULL, input_data, &output_data1);
 
-  ResetSeed(rand_seed, c);
+  c.Propagate(NULL, input_data, &output_data1);
   c.Propagate(NULL, input_data, &output_data2);
   if (properties & kPropagateInPlace) {
-    ResetSeed(rand_seed, c);
     c.Propagate(NULL, output_data3, &output_data3);
     if (!output_data1.ApproxEqual(output_data3)) {
       KALDI_ERR << "Test of kPropagateInPlace flag for component of type "
@@ -253,14 +238,12 @@ void TestSimpleComponentPropagateProperties(const Component &c) {
   AssertEqual(output_data1, output_data2);
 
   if (c_copy_scaled) {
-    ResetSeed(rand_seed, *c_copy_scaled);
     c_copy_scaled->Propagate(NULL, input_data, &output_data4);
     output_data4.Scale(2.0);  // we scaled the parameters by 0.5 above, and the
     // output is supposed to be linear in the parameter value.
     AssertEqual(output_data1, output_data4);
   }
   if (properties & kLinearInInput) {
-    ResetSeed(rand_seed, c);
     c.Propagate(NULL, input_data_scaled, &output_data5);
     output_data5.Scale(0.5);
     AssertEqual(output_data1, output_data5);
@@ -319,16 +302,14 @@ bool TestSimpleComponentDataDerivative(const Component &c,
 
   int32 input_dim = c.InputDim(),
       output_dim = c.OutputDim(),
-      num_rows = RandInt(1, 100),
-      rand_seed = Rand();
+      num_rows = RandInt(1, 100);
   int32 properties = c.Properties();
   CuMatrix<BaseFloat> input_data(num_rows, input_dim, kSetZero, input_stride_type),
       output_data(num_rows, output_dim, kSetZero, output_stride_type),
       output_deriv(num_rows, output_dim, kSetZero, output_stride_type);
   input_data.SetRandn();
   output_deriv.SetRandn();
- 
-  ResetSeed(rand_seed, c);
+
   c.Propagate(NULL, input_data, &output_data);
 
   CuMatrix<BaseFloat> input_deriv(num_rows, input_dim, kSetZero, input_stride_type),
@@ -353,8 +334,6 @@ bool TestSimpleComponentDataDerivative(const Component &c,
     predicted_objf_change(i) = TraceMatMat(perturbed_input_data, input_deriv,
                                            kTrans);
     perturbed_input_data.AddMat(1.0, input_data);
-
-    ResetSeed(rand_seed, c);
     c.Propagate(NULL, perturbed_input_data, &perturbed_output_data);
     measured_objf_change(i) = TraceMatMat(output_deriv, perturbed_output_data,
                                           kTrans) - original_objf;
@@ -373,11 +352,6 @@ bool TestSimpleComponentDataDerivative(const Component &c,
     // this is not unexpected.
     KALDI_LOG << "Accepting deriv differences since it is NormalizeComponent "
               << "with dim=1.";
-    return true;
-  }
-  else if (c.Type() == "ClipGradientComponent") {
-    KALDI_LOG << "Accepting deriv differences since "
-              << "it is ClipGradientComponent.";
     return true;
   }
   return ans;
@@ -524,7 +498,6 @@ int main() {
   TestStringsApproxEqual();
   for (kaldi::int32 loop = 0; loop < 2; loop++) {
 #if HAVE_CUDA == 1
-    //CuDevice::Instantiate().SetDebugStrideMode(true);
     if (loop == 0)
       CuDevice::Instantiate().SelectGpuId("no");
     else

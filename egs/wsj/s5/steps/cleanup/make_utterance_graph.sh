@@ -55,11 +55,9 @@ done
 
 mkdir -p $graph_dir/sub_graphs
 
-utils/lang/check_phones_compatible.sh $lang/phones.txt $model_dir/phones.txt
-
 # If --ngram-order is larger than 1, we will have to use SRILM
 if [ $ngram_order -gt 1 ]; then
-  ngram_count=`which ngram-count` || true
+  ngram_count=`which ngram-count`;
   if [ -z $ngram_count ]; then
     if uname -a | grep 64 >/dev/null; then # some kind of 64 bit...
       sdir=`pwd`/../../../tools/srilm/bin/i686-m64
@@ -91,10 +89,7 @@ P=`tree-info --print-args=false $model_dir/tree |\
 if [ -f $graph_dir/sub_graphs/HCLG.fsts.scp ]; then
   rm $graph_dir/sub_graphs/HCLG.fsts.scp
 fi
-
-cat $text | utils/sym2int.pl --map-oov $oov -f 2- $lang/words.txt | \
- utils/int2sym.pl -f 2- $lang/words.txt | \
- while read line; do
+while read line; do
   uttid=`echo $line | cut -d ' ' -f 1`
   words=`echo $line | cut -d ' ' -f 2-`
 
@@ -110,10 +105,12 @@ cat $text | utils/sym2int.pl --map-oov $oov -f 2- $lang/words.txt | \
       utils/make_unigram_grammar.pl | fstcompile |\
       fstarcsort --sort_type=ilabel > $wdir/G.fst || exit 1;
   else
-     echo $words | \
-     perl -ane '@A = split; for ($n=0;$n<@A;$n++) { print "$A[$n] "; if(($n+1)%30000 == 0 || $n+1==@A) {print "\n";} }' \
-     > $wdir/text
-     ngram-count -text $wdir/text -order $ngram_order "$srilm_options" -lm - | \
+    echo $words | awk -v voc=$lang/words.txt -v oov="$oov_txt" '
+      BEGIN{ while((getline<voc)>0) { invoc[$1]=1; } } {
+      for (x=1;x<=NF;x++) {
+      if (invoc[$x]) { printf("%s ", $x); } else { printf("%s ", oov); } }
+      printf("\n"); }' > $wdir/text
+    ngram-count -text $wdir/text -order $ngram_order "$srilm_options" -lm - |\
       arpa2fst --disambig-symbol=#0 \
              --read-symbol-table=$lang/words.txt - $wdir/G.fst || exit 1;
   fi
@@ -155,7 +152,7 @@ cat $text | utils/sym2int.pl --map-oov $oov -f 2- $lang/words.txt | \
 
   echo "$uttid $wdir/HCLG.fst" >> $graph_dir/sub_graphs/HCLG.fsts.scp
   echo
- done
+done < $text
 
 # Copies files from lang directory.
 mkdir -p $graph_dir

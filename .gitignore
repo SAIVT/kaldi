@@ -13,10 +13,6 @@
 *.obj
 *.pyc
 
-# profiling files and core files
-*.nvprof
-core
-
 # Compiled Dynamic libraries
 *.so
 *.dylib

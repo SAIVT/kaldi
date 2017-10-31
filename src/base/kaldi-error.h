@@ -1,6 +1,5 @@
 // base/kaldi-error.h
 
-// Copyright 2016 Brno University of Technology (author: Karel Vesely)
 // Copyright 2009-2011  Microsoft Corporation;  Ondrej Glembek;  Lukas Burget;
 //                      Saarland University
 
@@ -27,19 +26,16 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <vector>
 
 #include "base/kaldi-types.h"
 #include "base/kaldi-utils.h"
+
 /* Important that this file does not depend on any other kaldi headers. */
 
-// By adding 'KALDI_NOEXCEPT(bool)' immediately after function declaration,
-// we can tell the compiler that the function must-not produce
-// exceptions (true), or may produce exceptions (false):
 #if _MSC_VER >= 1900 || (!defined(_MSC_VER) && __cplusplus >= 201103L)
 #define KALDI_NOEXCEPT(Predicate) noexcept((Predicate))
 #elif defined(__GXX_EXPERIMENTAL_CXX0X__) && \
-      (__GNUC__ >= 4 && __GNUC_MINOR__ >= 6)
+  (__GNUC__ >= 4 && __GNUC_MINOR__ >= 6)
 #define KALDI_NOEXCEPT(Predicate) noexcept((Predicate))
 #else
 #define KALDI_NOEXCEPT(Predicate)
@@ -54,9 +50,7 @@ namespace kaldi {
 /// \addtogroup error_group
 /// @{
 
-/***** VERBOSITY LEVEL *****/
-
-/// This is set by util/parse-options.{h, cc} if you set --verbose=? option.
+/// This is set by util/parse-options.{h, cc} if you set --verbose = ? option.
 extern int32 g_kaldi_verbose_level;
 
 /// This is set by util/parse-options.{h, cc} (from argv[0]) and used (if set)
@@ -72,16 +66,12 @@ inline int32 GetVerboseLevel() { return g_kaldi_verbose_level; }
 /// automatically from ParseOptions.
 inline void SetVerboseLevel(int32 i) { g_kaldi_verbose_level = i; }
 
-
-/***** KALDI LOGGING *****/
-
 /// Log message severity and source location info.
 struct LogMessageEnvelope {
   enum Severity {
-    kAssertFailed = -3,
-    kError = -2,
-    kWarning = -1,
-    kInfo = 0,
+    Error = -2,
+    Warning = -1,
+    Info = 0,
   };
   // An 'enum Severity' value, or a positive number indicating verbosity level.
   int severity;
@@ -90,58 +80,35 @@ struct LogMessageEnvelope {
   int32 line;
 };
 
-// Class MessageLogger is invoked from the KALDI_ASSERT, KALDI_ERR, KALDI_WARN and
+/// Type of user-provided logging function.
+typedef void (*LogHandler)(const LogMessageEnvelope &envelope,
+                           const char *message);
+
+/// Set logging handler. If called with a non-NULL function pointer, the
+/// function pointed by it is called to send messages to a caller-provided
+/// log. If called with NULL pointer, restores default Kaldi error logging to
+/// stderr.  SetLogHandler is obviously not thread safe.
+LogHandler SetLogHandler(LogHandler);
+
+// Class MessageLogger is invoked from the KALDI_ERR, KALDI_WARN, KALDI_LOG and
 // KALDI_LOG macros. It formats the message, then either prints it to stderr or
 // passes to the log custom handler if provided, then, in case of the error,
-// throws an std::runtime_exception, in case of failed KALDI_ASSERT calls abort().
+// throws an std::runtime_exception.
 //
-// Note: we avoid using std::cerr for thread safety issues.
-// fprintf(stderr,...) is guaranteed thread-safe, and outputs
-// its formatted string atomically.
+// Note: we avoid using std::cerr, since it does not guarantee thread safety
+// in general, until C++11; even then, in "cerr << a << b", other thread's
+// output is allowed to intrude between a and b. fprintf(stderr,...) is
+// guaranteed thread-safe, and outputs its formatted string atomically.
 class MessageLogger {
 public:
-  /// Constructor stores the info,
-  MessageLogger(LogMessageEnvelope::Severity severity,
-                const char *func,
-                const char *file,
-                int32 line);
-
-  /// Destructor, calls 'HandleMessage' which prints the message,
-  /// (since C++11 a 'throwing' destructor must be declared 'noexcept(false)')
+  MessageLogger(LogMessageEnvelope::Severity severity, const char *func,
+                  const char *file, int32 line);
   ~MessageLogger() KALDI_NOEXCEPT(false);
-
-  /// The hook for the 'insertion operator', e.g.
-  /// 'KALDI_LOG << "Message,"',
   inline std::ostream &stream() { return ss_; }
-
-private:
-  /// The logging function,
-  static void HandleMessage(const LogMessageEnvelope &env, const char *msg);
-
 private:
   LogMessageEnvelope envelope_;
   std::ostringstream ss_;
 };
-
-// The definition of the logging macros,
-#define KALDI_ERR \
-  ::kaldi::MessageLogger(::kaldi::LogMessageEnvelope::kError, \
-                         __func__, __FILE__, __LINE__).stream()
-#define KALDI_WARN \
-  ::kaldi::MessageLogger(::kaldi::LogMessageEnvelope::kWarning, \
-                         __func__, __FILE__, __LINE__).stream()
-#define KALDI_LOG \
-  ::kaldi::MessageLogger(::kaldi::LogMessageEnvelope::kInfo, \
-                         __func__, __FILE__, __LINE__).stream()
-#define KALDI_VLOG(v) if ((v) <= ::kaldi::g_kaldi_verbose_level)     \
-  ::kaldi::MessageLogger((::kaldi::LogMessageEnvelope::Severity)(v), \
-                         __func__, __FILE__, __LINE__).stream()
-
-
-/***** KALDI ASSERTS *****/
-
-void KaldiAssertFailure_(const char *func, const char *file,
-                         int32 line, const char *cond_str);
 
 // Note on KALDI_ASSERT and KALDI_PARANOID_ASSERT
 // The original (simple) version of the code was this
@@ -171,7 +138,7 @@ void KaldiAssertFailure_(const char *func, const char *file,
 #else
 #define KALDI_ASSERT(cond) (void)0
 #endif
-// Also see KALDI_COMPILE_TIME_ASSERT, defined in base/kaldi-utils.h,
+// also see KALDI_COMPILE_TIME_ASSERT, defined in base/kaldi-utils.h,
 // and KALDI_ASSERT_IS_INTEGER_TYPE and KALDI_ASSERT_IS_FLOATING_TYPE,
 // also defined there.
 // some more expensive asserts only checked if this defined
@@ -183,30 +150,25 @@ void KaldiAssertFailure_(const char *func, const char *file,
 #endif
 
 
-/***** THIRD-PARTY LOG-HANDLER *****/
+#define KALDI_ERR \
+  ::kaldi::MessageLogger(::kaldi::LogMessageEnvelope::Error, \
+                         __func__, __FILE__, __LINE__).stream()
+#define KALDI_WARN \
+  ::kaldi::MessageLogger(::kaldi::LogMessageEnvelope::Warning, \
+                         __func__, __FILE__, __LINE__).stream()
+#define KALDI_LOG \
+  ::kaldi::MessageLogger(::kaldi::LogMessageEnvelope::Info, \
+                         __func__, __FILE__, __LINE__).stream()
+#define KALDI_VLOG(v) if ((v) <= ::kaldi::g_kaldi_verbose_level)     \
+  ::kaldi::MessageLogger((::kaldi::LogMessageEnvelope::Severity)(v), \
+                         __func__, __FILE__, __LINE__).stream()
 
-/// Type of third-party logging function,
-typedef void (*LogHandler)(const LogMessageEnvelope &envelope,
-                           const char *message);
-
-/// Set logging handler. If called with a non-NULL function pointer, the
-/// function pointed by it is called to send messages to a caller-provided
-/// log. If called with NULL pointer, restores default Kaldi error logging to
-/// stderr.  SetLogHandler is obviously not thread safe.
-LogHandler SetLogHandler(LogHandler);
-
-
-/***** WRITING 'std::vector<T>' TO LOGPRINT *****/
-template<typename T>
-std::ostream& operator<< (std::ostream& os, const std::vector<T>& v) {
-  os << "[ ";
-  typename std::vector<T>::const_iterator it;
-  for (it = v.begin(); it != v.end(); ++it) {
-    os << *it << " ";
-  }
-  os << "]";
-  return os;
+inline bool IsKaldiError(const std::string &str) {
+  return(!strncmp(str.c_str(), "ERROR ", 6));
 }
+
+void KaldiAssertFailure_(const char *func, const char *file,
+                         int32 line, const char *cond_str);
 
 /// @} end "addtogroup error_group"
 

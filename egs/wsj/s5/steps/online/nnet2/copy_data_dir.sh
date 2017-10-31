@@ -3,8 +3,6 @@
 # Copyright 2013-2014  Johns Hopkins University (author: Daniel Povey)
 # Apache 2.0
 
-# Warning, this script is deprecated, please use utils/data/modify_speaker_info.sh
-
 # This script is as utils/copy_data_dir.sh in that it copies a data-dir,
 # but it supports the --utts-per-spk-max option.  If nonzero, it modifies
 # the utt2spk and spk2utt files by splitting each speaker into multiple
@@ -28,8 +26,6 @@ if [ $# != 2 ]; then
   exit 1;
 fi
 
-
-echo "$0: this script is deprecated, please use utils/data/modify_speaker_info.sh."
 
 export LC_ALL=C
 

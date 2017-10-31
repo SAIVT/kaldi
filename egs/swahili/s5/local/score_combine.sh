@@ -24,8 +24,8 @@
 
 # begin configuration section.
 cmd=run.pl
-min_lmwt=7
-max_lmwt=17
+min_lmwt=9
+max_lmwt=20
 lat_weights=
 #end configuration section.
 

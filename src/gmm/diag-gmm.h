@@ -38,7 +38,8 @@ namespace kaldi {
 class FullGmm;
 class DiagGmmNormal;
 
-/// Definition for Gaussian Mixture Model with diagonal covariances
+/** \class DiagGmm Definition for Gaussian Mixture Model with diagonal covariances
+ */
 class DiagGmm {
   /// this makes it a little easier to modify the internals
   friend class DiagGmmNormal;
@@ -57,7 +58,7 @@ class DiagGmm {
 
   /// Copies from DiagGmmNormal; does not resize.
   void CopyFromNormal(const DiagGmmNormal &diag_gmm_normal);
-
+  
   DiagGmm(int32 nMix, int32 dim): valid_gconsts_(false) { Resize(nMix, dim); }
 
   /// Constructor that allows us to merge GMMs with weights.  Weights must sum
@@ -91,7 +92,7 @@ class DiagGmm {
   void LogLikelihoods(const MatrixBase<BaseFloat> &data,
                       Matrix<BaseFloat> *loglikes) const;
 
-
+  
   /// Outputs the per-component log-likelihoods of a subset of mixture
   /// components.  Note: at output, loglikes->Dim() will equal indices.size().
   /// loglikes[i] will correspond to the log-likelihood of the Gaussian
@@ -100,7 +101,7 @@ class DiagGmm {
                                const std::vector<int32> &indices,
                                Vector<BaseFloat> *loglikes) const;
 
-  /// Get gaussian selection information for one frame.  Returns og-like
+  /// Get gaussian selection information for one frame.  Returns og-like 
   /// this frame.  Output is the best "num_gselect" indices, sorted from best to
   /// worst likelihood.  If "num_gselect" > NumGauss(), sets it to NumGauss().
   BaseFloat GaussianSelection(const VectorBase<BaseFloat> &data,
@@ -113,7 +114,7 @@ class DiagGmm {
   BaseFloat GaussianSelection(const MatrixBase<BaseFloat> &data,
                               int32 num_gselect,
                               std::vector<std::vector<int32> > *output) const;
-
+  
   /// Get gaussian selection information for one frame.  Returns log-like for
   /// this frame.  Output is the best "num_gselect" indices that were
   /// preselected, sorted from best to worst likelihood.  If "num_gselect" >
@@ -121,7 +122,7 @@ class DiagGmm {
   BaseFloat GaussianSelectionPreselect(const VectorBase<BaseFloat> &data,
                                        const std::vector<int32> &preselect,
                                        int32 num_gselect,
-                                       std::vector<int32> *output) const;
+                                       std::vector<int32> *output) const;    
 
   /// Computes the posterior probabilities of all Gaussian components given
   /// a data point. Returns the log-likehood of the data given the GMM.

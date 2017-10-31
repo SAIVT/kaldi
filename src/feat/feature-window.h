@@ -41,9 +41,8 @@ struct FrameExtractionOptions {
   bool remove_dc_offset;  // Subtract mean of wave before FFT.
   std::string window_type;  // e.g. Hamming window
   bool round_to_power_of_two;
-  BaseFloat blackman_coeff;
   bool snip_edges;
-  // May be "hamming", "rectangular", "povey", "hanning", "blackman"
+  // Maybe "hamming", "rectangular", "povey", "hanning"
   // "povey" is a window I made to be similar to Hamming but to go to zero at the
   // edges, it's pow((0.5 - 0.5*cos(n/N*2*pi)), 0.85)
   // I just don't think the Hamming window makes sense as a windowing function.
@@ -56,7 +55,6 @@ struct FrameExtractionOptions {
       remove_dc_offset(true),
       window_type("povey"),
       round_to_power_of_two(true),
-      blackman_coeff(0.42),
       snip_edges(true){ }
 
   void Register(OptionsItf *opts) {
@@ -71,10 +69,7 @@ struct FrameExtractionOptions {
                    "Subtract mean from waveform on each frame");
     opts->Register("dither", &dither, "Dithering constant (0.0 means no dither)");
     opts->Register("window-type", &window_type, "Type of window "
-                   "(\"hamming\"|\"hanning\"|\"povey\"|\"rectangular\""
-                   "|\"blackmann\")");
-    opts->Register("blackman-coeff", &blackman_coeff,
-                   "Constant coefficient for generalized Blackman window.");
+                   "(\"hamming\"|\"hanning\"|\"povey\"|\"rectangular\")");
     opts->Register("round-to-power-of-two", &round_to_power_of_two,
                    "If true, round window size to power of two.");
     opts->Register("snip-edges", &snip_edges,

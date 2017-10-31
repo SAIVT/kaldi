@@ -33,10 +33,10 @@
 namespace kaldi {
 namespace nnet1 {
 
-class ParallelComponent : public MultistreamComponent {
+class ParallelComponent : public UpdatableComponent {
  public:
   ParallelComponent(int32 dim_in, int32 dim_out):
-    MultistreamComponent(dim_in, dim_out)
+    UpdatableComponent(dim_in, dim_out)
   { }
 
   ~ParallelComponent()
@@ -75,8 +75,10 @@ class ParallelComponent : public MultistreamComponent {
                          << " (NestedNnet|NestedNnetFilename|NestedNnetProto)";
       }
     }
-    // Initialize,
-    // First, read nnets from files,
+    // initialize,
+    KALDI_ASSERT((nested_nnet_proto.size() > 0) ^
+                 (nested_nnet_filename.size() > 0));  // ^xor,
+    // read nnets from files,
     if (nested_nnet_filename.size() > 0) {
       for (int32 i = 0; i < nested_nnet_filename.size(); i++) {
         Nnet nnet;
@@ -86,7 +88,7 @@ class ParallelComponent : public MultistreamComponent {
                   << nested_nnet_filename[i];
       }
     }
-    // Second, initialize nnets from prototypes,
+    // initialize nnets from prototypes,
     if (nested_nnet_proto.size() > 0) {
       for (int32 i = 0; i < nested_nnet_proto.size(); i++) {
         Nnet nnet;
@@ -96,7 +98,7 @@ class ParallelComponent : public MultistreamComponent {
                   << nested_nnet_proto[i];
       }
     }
-    // Check dim-sum of nested nnets,
+    // check dim-sum of nested nnets,
     int32 nnet_input_sum = 0, nnet_output_sum = 0;
     for (int32 i = 0; i < nnet_.size(); i++) {
       nnet_input_sum += nnet_[i].InputDim();
@@ -336,18 +338,6 @@ class ParallelComponent : public MultistreamComponent {
           comp.SetBiasLearnRateCoef(val);
         }
       }
-    }
-  }
-
-  /**
-   * Overriding the default,
-   * which was MultistreamComponent::SetSeqLengths(...)
-   */
-  void SetSeqLengths(const std::vector<int32> &sequence_lengths) {
-    sequence_lengths_ = sequence_lengths;
-    // loop over nnets,
-    for (int32 i = 0; i < nnet_.size(); i++) {
-      nnet_[i].SetSeqLengths(sequence_lengths);
     }
   }
 

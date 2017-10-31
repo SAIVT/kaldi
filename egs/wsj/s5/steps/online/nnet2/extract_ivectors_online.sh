@@ -3,7 +3,6 @@
 # Copyright     2013  Daniel Povey
 # Apache 2.0.
 
-set -o pipefail
 
 # This script extracts iVectors for a set of utterances, given
 # features and a trained iVector extractor.

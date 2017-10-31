@@ -58,17 +58,6 @@ void TestHmmTopology() {
       "  </TopologyEntry>\n"
       "  </Topology>\n";
 
-  std::string chain_input_str = "<Topology>\n"
-      "<TopologyEntry>\n"
-      "<ForPhones> 1 2 3 4 5 6 7 8 9 </ForPhones>\n"
-      " <State> 0 <ForwardPdfClass> 0 <SelfLoopPdfClass> 1\n"
-      "  <Transition> 0 0.5\n"
-      "  <Transition> 1 0.5\n"
-      " </State> \n"
-      " <State> 1 </State>\n"
-      "</TopologyEntry>\n"
-      "</Topology>\n";
-
   HmmTopology topo;
 
   if (RandInt(0, 1) == 0) {
@@ -93,13 +82,6 @@ void TestHmmTopology() {
     topo.Write(oss1, false);
     topo2.Write(oss2, false);
     KALDI_ASSERT(oss1.str() == oss2.str());
-  }
-
-  {  // test chain topology
-    HmmTopology chain_topo;
-    std::istringstream chain_iss(chain_input_str);
-    chain_topo.Read(chain_iss, false);
-    KALDI_ASSERT(chain_topo.MinLength(3) == 1);
   }
 
   {  // make sure GetDefaultTopology does not crash.

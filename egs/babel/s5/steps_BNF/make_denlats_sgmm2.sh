@@ -108,7 +108,7 @@ else
   fi
 fi
 
-if [ $sub_split -eq 1 ]; then
+if [ $sub_split -eq 1 ]; then 
   $cmd JOB=1:$nj $dir/log/decode_den.JOB.log \
    sgmm2-latgen-faster $spkvecs_opt "$gselect_opt" --beam=$beam \
      --lattice-beam=$lattice_beam --acoustic-scale=$acwt \
@@ -118,9 +118,11 @@ else
   for n in `seq $nj`; do
     if [ -f $dir/.done.$n ] && [ $dir/.done.$n -nt $alidir/final.mdl ]; then
       echo "Not processing subset $n as already done (delete $dir/.done.$n if not)";
-    else
-      sdata2=$data/split$nj/$n/split${sub_split}utt;
-      split_data.sh --per-utt $sdata/$n $sub_split || exit 1;
+    else 
+      sdata2=$data/split$nj/$n/split$sub_split;
+      if [ ! -d $sdata2 ] || [ $sdata2 -ot $sdata/$n/feats.scp ]; then
+        split_data.sh --per-utt $sdata/$n $sub_split || exit 1;
+      fi
       mkdir -p $dir/log/$n
       mkdir -p $dir/part
       feats_subset=`echo $feats | sed "s/trans.JOB/trans.$n/g" | sed s:JOB/:$n/split$sub_split/JOB/:g`

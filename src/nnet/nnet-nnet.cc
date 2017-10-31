@@ -20,10 +20,11 @@
 #include "nnet/nnet-nnet.h"
 #include "nnet/nnet-component.h"
 #include "nnet/nnet-parallel-component.h"
-#include "nnet/nnet-multibasis-component.h"
 #include "nnet/nnet-activation.h"
 #include "nnet/nnet-affine-transform.h"
 #include "nnet/nnet-various.h"
+#include "nnet/nnet-lstm-projected-streams.h"
+#include "nnet/nnet-blstm-projected-streams.h"
 
 namespace kaldi {
 namespace nnet1 {
@@ -265,34 +266,34 @@ void Nnet::SetParams(const VectorBase<BaseFloat>& params) {
   KALDI_ASSERT(pos == NumParams());
 }
 
-void Nnet::SetDropoutRate(BaseFloat r)  {
+void Nnet::SetDropoutRetention(BaseFloat r)  {
   for (int32 c = 0; c < NumComponents(); c++) {
     if (GetComponent(c).GetType() == Component::kDropout) {
       Dropout& comp = dynamic_cast<Dropout&>(GetComponent(c));
-      BaseFloat r_old = comp.GetDropoutRate();
-      comp.SetDropoutRate(r);
-      KALDI_LOG << "Setting dropout-rate in component " << c
+      BaseFloat r_old = comp.GetDropoutRetention();
+      comp.SetDropoutRetention(r);
+      KALDI_LOG << "Setting dropout-retention in component " << c
                 << " from " << r_old << " to " << r;
     }
   }
 }
 
 
-void Nnet::ResetStreams(const std::vector<int32> &stream_reset_flag) {
+void Nnet::ResetLstmStreams(const std::vector<int32> &stream_reset_flag) {
   for (int32 c = 0; c < NumComponents(); c++) {
-    if (GetComponent(c).IsMultistream()) {
-      MultistreamComponent& comp =
-        dynamic_cast<MultistreamComponent&>(GetComponent(c));
-      comp.ResetStreams(stream_reset_flag);
+    if (GetComponent(c).GetType() == Component::kLstmProjectedStreams) {
+      LstmProjectedStreams& comp =
+        dynamic_cast<LstmProjectedStreams&>(GetComponent(c));
+      comp.ResetLstmStreams(stream_reset_flag);
     }
   }
 }
 
 void Nnet::SetSeqLengths(const std::vector<int32> &sequence_lengths) {
   for (int32 c = 0; c < NumComponents(); c++) {
-    if (GetComponent(c).IsMultistream()) {
-      MultistreamComponent& comp =
-        dynamic_cast<MultistreamComponent&>(GetComponent(c));
+    if (GetComponent(c).GetType() == Component::kBLstmProjectedStreams) {
+      BLstmProjectedStreams& comp =
+        dynamic_cast<BLstmProjectedStreams&>(GetComponent(c));
       comp.SetSeqLengths(sequence_lengths);
     }
   }
@@ -387,8 +388,6 @@ std::string Nnet::Info() const {
   // global info
   std::ostringstream ostr;
   ostr << "num-components " << NumComponents() << std::endl;
-  if (NumComponents() == 0)
-    return ostr.str();
   ostr << "input-dim " << InputDim() << std::endl;
   ostr << "output-dim " << OutputDim() << std::endl;
   ostr << "number-of-parameters " << static_cast<float>(NumParams())/1e6
@@ -432,9 +431,6 @@ std::string Nnet::InfoPropagate(bool header) const {
       ostr <<
         dynamic_cast<ParallelComponent*>(components_[i])->InfoPropagate();
     }
-    if (Component::kMultiBasisComponent == components_[i]->GetType()) {
-      ostr << dynamic_cast<MultiBasisComponent*>(components_[i])->InfoPropagate();
-    }
   }
   if (header) ostr << "### END FORWARD\n";
   return ostr.str();
@@ -455,9 +451,6 @@ std::string Nnet::InfoBackPropagate(bool header) const {
       ostr <<
         dynamic_cast<ParallelComponent*>(components_[i])->InfoBackPropagate();
     }
-    if (Component::kMultiBasisComponent == components_[i]->GetType()) {
-      ostr << dynamic_cast<MultiBasisComponent*>(components_[i])->InfoBackPropagate();
-    }
   }
   if (header) ostr << "### END BACKWARD\n\n";
   return ostr.str();
@@ -470,16 +463,7 @@ void Nnet::Check() const {
     KALDI_ASSERT(components_[i] != NULL);
     int32 output_dim = components_[i]->OutputDim(),
       next_input_dim = components_[i+1]->InputDim();
-    // show error message,
-    if (output_dim != next_input_dim) {
-      KALDI_ERR << "Component dimension mismatch!"
-                << " Output dim of [" << i << "] "
-                << Component::TypeToMarker(components_[i]->GetType())
-                << " is " << output_dim << ". "
-                << "Input dim of next [" << i+1 << "] "
-                << Component::TypeToMarker(components_[i+1]->GetType())
-                << " is " << next_input_dim << ".";
-    }
+    KALDI_ASSERT(output_dim == next_input_dim);
   }
   // check for nan/inf in network weights,
   Vector<BaseFloat> weights;

@@ -4,9 +4,8 @@
 # begin configuration section.
 cmd=run.pl
 stage=0
-min_lmwt=7
-max_lmwt=17
-iter=final
+min_lmwt=9
+max_lmwt=20
 #end configuration section.
 
 [ -f ./path.sh ] && . ./path.sh
@@ -26,9 +25,9 @@ data=$1
 lang=$2 # Note: may be graph directory not lang directory, but has the necessary stuff copied.
 dir=$3
 
-model=$dir/../${iter}.mdl # assume model one level up from decoding dir.
+model=$dir/../final.mdl # assume model one level up from decoding dir.
 
-hubscr=$KALDI_ROOT/tools/sctk/bin/hubscr.pl
+hubscr=$KALDI_ROOT/tools/sctk/bin/hubscr.pl 
 [ ! -f $hubscr ] && echo "Cannot find scoring program at $hubscr" && exit 1;
 hubdir=`dirname $hubscr`
 
@@ -61,7 +60,7 @@ if [ $stage -le 1 ]; then
   done
 fi
 
-if [ $stage -le 2 ]; then
+if [ $stage -le 2 ]; then  
   $cmd LMWT=$min_lmwt:$max_lmwt $dir/scoring/log/score.LMWT.log \
     cp $data/stm $dir/score_LMWT/ '&&' \
     $hubscr -p $hubdir -V -l english -h hub5 -g $data/glm -r $dir/score_LMWT/stm $dir/score_LMWT/${name}.ctm || exit 1;
